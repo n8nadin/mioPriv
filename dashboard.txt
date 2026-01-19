@@ -1,0 +1,1665 @@
+﻿<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuartel General IAdinse - MCP Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg: #0a0e1a; --card: #111827; --text: #ffffff; --subtext: #9ca3af;
+            --border: rgba(255,255,255,0.1); --accent: #6366f1; --row-bg: #1f2937;
+        }
+        [data-theme="light"] {
+            --bg: #f3f4f6; --card: #ffffff; --text: #0f172a; --subtext: #4b5563;
+            --border: rgba(0,0,0,0.1); --accent: #4f46e5; --row-bg: #f9fafb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            transition: all 0.3s;
+        }
+
+        .glass-card { 
+            background: var(--card); border: 1px solid var(--border); 
+            border-radius: 16px; padding: 24px; margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-tabs { border: none; margin-bottom: 20px; }
+        .nav-tabs .nav-link {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--subtext); border-radius: 10px;
+            margin-right: 8px; padding: 10px 16px; transition: all 0.3s;
+            font-size: 14px;
+        }
+        .nav-tabs .nav-link:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tabs .nav-link.active {
+            background: var(--accent); border-color: var(--accent); color: white;
+        }
+
+        .chat-container {
+            display: flex; flex-direction: column; height: 600px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 16px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-thumb { 
+            background: var(--accent); border-radius: 10px; 
+        }
+
+        .chat-message { display: flex; gap: 12px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user { justify-content: flex-end; }
+        .chat-bubble {
+            max-width: 70%; padding: 12px 16px;
+            border-radius: 16px; line-height: 1.5;
+        }
+        .chat-message.user .chat-bubble {
+            background: #4f46e5; color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message.ai .chat-bubble {
+            background: var(--row-bg); color: var(--text);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+            white-space: pre-wrap;
+        }
+        
+        .ai-avatar {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 8px;
+            border-radius: 4px;
+        }
+
+        .chat-input-container {
+            padding: 16px; border-top: 1px solid var(--border);
+            display: flex; gap: 12px;
+        }
+        .chat-input {
+            flex: 1; background: var(--row-bg);
+            border: 1px solid var(--border); color: var(--text);
+            border-radius: 12px; padding: 12px 16px; font-size: 15px;
+        }
+        .chat-input:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .btn-send {
+            background: var(--accent); border: none; color: white;
+            padding: 12px 24px; border-radius: 12px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .btn-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .file-item, .wf-item {
+            background: var(--row-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px; margin-bottom: 10px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .file-item:hover, .wf-item:hover {
+            border-color: var(--accent); transform: translateX(4px);
+        }
+
+        .chart-preview {
+            width: 100%; height: 400px; border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; background: white;
+        }
+
+        .spinner { 
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form-select, .form-control {
+            background: var(--row-bg); border: 1px solid var(--border);
+            color: var(--text); border-radius: 10px; padding: 10px;
+        }
+        .form-select:focus, .form-control:focus {
+            outline: none; border-color: var(--accent);
+            background: var(--row-bg); color: var(--text);
+        }
+        
+        .status-dot { 
+            height: 10px; width: 10px; border-radius: 50%; 
+            display: inline-block; margin-right: 10px; 
+        }
+        .dot-active { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+        .dot-inactive { background-color: #ef4444; }
+        
+        .btn-action { 
+            background: transparent; border: 1px solid var(--border); 
+            color: var(--text); padding: 6px 12px; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; margin: 0 4px;
+        }
+        .btn-action:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+        .btn-active-on { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        
+        .scroll-area { max-height: 450px; overflow-y: auto; }
+        .scroll-area::-webkit-scrollbar { width: 5px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+        .custom-table th { 
+            color: var(--subtext); text-transform: uppercase; font-size: 0.75rem; 
+            padding: 12px; position: sticky; top: 0; background: var(--card); z-index: 5; 
+        }
+        .custom-table td { 
+            padding: 14px 12px; background: var(--row-bg); color: var(--text); 
+            font-size: 0.9rem; border-top: 1px solid var(--border); 
+            border-bottom: 1px solid var(--border); 
+        }
+        .custom-table td:first-child { 
+            border-left: 1px solid var(--border); border-radius: 10px 0 0 10px; font-weight: 600; 
+        }
+        .custom-table td:last-child { border-right: 1px solid var(--border); border-radius: 0 10px 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    
+    <!-- HEADER -->
+    <div class="glass-card d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="mb-1 fw-bold">
+                <i class="bi bi-building me-2" style="color: var(--accent);"></i>
+                Cuartel General IA
+            </h3>
+            <small class="text-secondary">Sistema interno de análisis de datos con IA local</small>
+        </div>
+        <div class="d-flex gap-3">
+            <span class="badge bg-success" id="ollamaStatus">
+                <i class="bi bi-circle-fill"></i> Ollama
+            </span>
+            <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()" id="themeBtn">
+                <i class="bi bi-moon-stars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#chatTab">
+                <i class="bi bi-robot me-2"></i>Asistente IA
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#filesTab">
+                <i class="bi bi-folder2 me-2"></i>Datos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#chartsTab">
+                <i class="bi bi-graph-up me-2"></i>Visualizaciones
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#ragTab">
+                <i class="bi bi-search-heart me-2"></i>Incidencias RAG
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#workflowsTab">
+                <i class="bi bi-diagram-3 me-2"></i>Workflows n8n
+            </a>
+        </li>
+    </ul>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content">
+        
+        <!-- TAB: CHAT IA -->
+        <div class="tab-pane fade show active" id="chatTab">
+            <div class="row">
+                <div class="col-lg-9 mx-auto">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <div>
+                                <strong>
+                                    <img src="/static/logo.png" class="ai-avatar" alt="IA" onerror="this.style.display='none'">
+                                    Asistente IAdinse
+                                </strong>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <select class="form-select form-select-sm" id="modelSelect" style="width: 200px;">
+                                    <option>Cargando modelos...</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-danger" onclick="clearChat()" title="Limpiar conversación">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="chat-message ai">
+                                <div class="chat-bubble">
+                                    <strong>
+                                        <img src="/static/logo.png" class="ai-avatar" alt="IA" onerror="this.style.display='none'">
+                                        Asistente IAdinse
+                                    </strong><br>
+                                    ¡Hola! Soy tu asistente interno. Puedo:
+                                    <br>• Analizar archivos CSV, Excel y JSON
+                                    <br>• Crear gráficos y visualizaciones
+                                    <br>• Buscar información en internet
+                                    <br>• Encontrar incidencias similares
+                                    <br><br>
+                                    Prueba: "Lista los archivos disponibles" o "Analiza ventas_ejemplo.csv"
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <input 
+                                type="text" 
+                                class="chat-input" 
+                                id="chatInput" 
+                                placeholder="Escribe tu mensaje..."
+                                onkeypress="if(event.key==='Enter') sendMessage()"
+                            >
+                            <button class="btn-send" onclick="sendMessage()" id="sendBtn">
+                                <i class="bi bi-send-fill"></i> Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ARCHIVOS -->
+        <div class="tab-pane fade" id="filesTab">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-folder2-open me-2"></i>Archivos Disponibles
+                        </h5>
+                        <div id="filesList" class="scroll-area">
+                            <p class="text-center text-secondary">Cargando...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-table me-2"></i>Análisis de Datos
+                        </h5>
+                        <div id="analysisResult">
+                            <p class="text-center text-secondary">
+                                👈 Selecciona un archivo de la lista
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: GRÁFICOS -->
+        <div class="tab-pane fade" id="chartsTab">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">Crear Gráfico</h5>
+                        
+                        <label class="form-label">Archivo</label>
+                        <select class="form-select mb-3" id="chartFile">
+                            <option>Cargando...</option>
+                        </select>
+
+                        <label class="form-label">Tipo de Gráfico</label>
+                        <select class="form-select mb-3" id="chartType">
+                            <option value="bar">📊 Barras</option>
+                            <option value="line">📈 Línea</option>
+                            <option value="pie">🥧 Pastel</option>
+                            <option value="scatter">⚫ Dispersión</option>
+                            <option value="histogram">📊 Histograma</option>
+                            <option value="heatmap">🔥 Mapa de Calor</option>
+                        </select>
+
+                        <label class="form-label">Columna X</label>
+                        <select class="form-select mb-3" id="chartX">
+                            <option>Selecciona archivo primero</option>
+                        </select>
+
+                        <label class="form-label">Columna Y (opcional)</label>
+                        <select class="form-select mb-3" id="chartY">
+                            <option value="">Ninguna</option>
+                        </select>
+
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-control mb-3" id="chartTitle" 
+                               placeholder="Mi Gráfico" value="Mi Gráfico">
+
+                        <button class="btn btn-primary w-100" onclick="createChart()">
+                            <i class="bi bi-graph-up me-2"></i>Generar Gráfico
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">Vista Previa</h5>
+                        <iframe id="chartPreview" class="chart-preview"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: RAG -->
+        <div class="tab-pane fade" id="ragTab">
+            <!-- VISUALIZACIÓN GALAXY 3D -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="glass-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-stars me-2"></i>Galaxy 3D - Universo de Incidencias
+                            </h5>
+                            <div>
+                                <span class="badge bg-primary me-2" id="galaxyProjectCount">0 Proyectos</span>
+                                <span class="badge bg-info" id="galaxyIncidentCount">0 Incidencias</span>
+                                <button class="btn btn-sm btn-outline-primary ms-2" onclick="loadGalaxy()" title="Recargar Galaxy">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="resetCamera()" title="Resetear Cámara">
+                                    <i class="bi bi-bullseye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="galaxy3d" style="width: 100%; height: 500px; background: #000; border-radius: 12px; position: relative; overflow: hidden;">
+                            <div id="galaxyLoading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Cargando universo...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3" id="galaxyInfo" style="display: none;">
+                            <div class="alert alert-info">
+                                <strong id="selectedProjectName">Proyecto</strong><br>
+                                <small id="selectedProjectInfo">Información del proyecto</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <small class="text-secondary">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Controles:</strong> Click en un sol para ver su sistema solar | Rueda para zoom | Arrastrar para rotar
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">Cargar Incidencias</h5>
+                        
+                        <label class="form-label">Archivo CSV/JSON</label>
+                        <select class="form-select mb-3" id="ragFile">
+                            <option>Cargando...</option>
+                        </select>
+                        
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>¿Ya tienes archivos .faiss y .pkl?</strong><br>
+                                Si ya generaste el RAG previamente y tienes los archivos en rag_db/,<br>
+                                NO necesitas volver a cargar. El sistema los detecta automáticamente.<br><br>
+                                <strong>Solo carga si:</strong>
+                                <ul class="mb-0 mt-1">
+                                    <li>Es la primera vez que usas el RAG</li>
+                                    <li>Agregaste nuevas incidencias al JSON</li>
+                                    <li>Quieres actualizar los datos</li>
+                                </ul>
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <small><i class="bi bi-exclamation-triangle me-1"></i>
+                            Archivos grandes (>5MB) pueden tardar varios minutos</small>
+                        </div>
+
+                        <button class="btn btn-success w-100" onclick="loadRAG()" id="loadRAGBtn">
+                            <i class="bi bi-upload me-2"></i>Cargar al RAG
+                        </button>
+
+                        <hr class="my-4">
+
+                        <div id="ragStats" class="text-center">
+                            <p class="text-secondary">Cargando estadísticas...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">Buscar Incidencias Similares</h5>
+                        
+                        <label class="form-label">Describe la nueva incidencia</label>
+                        <textarea class="form-control mb-3" id="ragQuery" rows="4"
+                                  placeholder="Ej: El usuario no puede hacer login desde Chrome"></textarea>
+
+                        <button class="btn btn-primary w-100 mb-3" onclick="searchRAG()">
+                            <i class="bi bi-search me-2"></i>Buscar Similares
+                        </button>
+
+                        <div id="ragResults"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: WORKFLOWS N8N -->
+        <div class="tab-pane fade" id="workflowsTab">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-list-check me-2"></i>Workflows Disponibles
+                        </h5>
+                        <div id="workflowsList" class="scroll-area">
+                            <p class="text-center text-secondary">Cargando workflows...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-clock-history me-2"></i>Historial de Ejecuciones
+                        </h5>
+                        <div id="executionsList" class="scroll-area">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Workflow</th>
+                                        <th>Fecha / Hora</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="executionsTableBody">
+                                    <tr><td colspan="3" class="text-center">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    // ============= TEMA =============
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('themeBtn').innerHTML = isDark 
+            ? '<i class="bi bi-sun-fill"></i>' 
+            : '<i class="bi bi-moon-stars"></i>';
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'light') {
+        document.getElementById('themeBtn').innerHTML = '<i class="bi bi-sun-fill"></i>';
+    }
+
+    // ============= OLLAMA MODELS =============
+    async function loadModels() {
+        try {
+            const response = await fetch('/api/ollama/models');
+            const data = await response.json();
+            
+            const select = document.getElementById('modelSelect');
+            
+            if (data.success && data.models.length > 0) {
+                // Construir opciones
+                let options = data.models.map(m => {
+                    // Marcar llama3.1:8b como default
+                    const isDefault = m.toLowerCase().includes('llama3.1') && m.includes('8b');
+                    return `<option value="${m}" ${isDefault ? 'selected' : ''}>${m}</option>`;
+                }).join('');
+                
+                select.innerHTML = options;
+                
+                // Si no encontró llama3.1:8b, buscar alternativas en orden de preferencia
+                if (!options.includes('selected')) {
+                    // Intentar con variantes
+                    const preferredModels = ['llama3.1:8b', 'llama3.1', 'llama3.2', 'llama3', 'llama2'];
+                    
+                    for (const preferred of preferredModels) {
+                        const match = data.models.find(m => m.toLowerCase().includes(preferred.toLowerCase()));
+                        if (match) {
+                            select.value = match;
+                            break;
+                        }
+                    }
+                }
+                
+                document.getElementById('ollamaStatus').className = 'badge bg-success';
+                document.getElementById('ollamaStatus').innerHTML = '<i class="bi bi-circle-fill"></i> Ollama';
+            } else {
+                select.innerHTML = '<option>No hay modelos</option>';
+                document.getElementById('ollamaStatus').className = 'badge bg-danger';
+                document.getElementById('ollamaStatus').innerHTML = '<i class="bi bi-exclamation-circle"></i> Ollama';
+            }
+        } catch (error) {
+            document.getElementById('modelSelect').innerHTML = '<option>Error al cargar</option>';
+            document.getElementById('ollamaStatus').className = 'badge bg-danger';
+        }
+    }
+
+    // ============= CHAT =============
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const btn = document.getElementById('sendBtn');
+        const model = document.getElementById('modelSelect').value;
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        addMessage(message, 'user');
+        input.value = '';
+        
+        input.disabled = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Procesando...';
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    message: message,
+                    model: model,
+                    use_history: true
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                let responseText = data.response;
+                if (data.tool_used) {
+                    responseText = `🔧 *Usé: ${data.tool_used}*\n\n${responseText}`;
+                }
+                addMessage(responseText, 'ai');
+            } else {
+                addMessage('❌ Error: ' + (data.error || 'Desconocido'), 'ai');
+            }
+        } catch (error) {
+            addMessage('❌ Error de conexión: ' + error.message, 'ai');
+        } finally {
+            input.disabled = false;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> Enviar';
+            input.focus();
+        }
+    }
+
+    function addMessage(text, type) {
+        const messages = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-message ${type}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        
+        if (type === 'ai') {
+            bubble.innerHTML = `<strong><img src="/static/logo.png" class="ai-avatar" alt="IA" onerror="this.style.display='none'">Asistente IAdinse</strong><br>${text}`;
+        } else {
+            bubble.textContent = text;
+        }
+        
+        msgDiv.appendChild(bubble);
+        messages.appendChild(msgDiv);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function clearChat() {
+        if (!confirm('¿Limpiar conversación?')) return;
+        
+        try {
+            await fetch('/api/chat/clear', {method: 'POST'});
+            const messages = document.getElementById('chatMessages');
+            messages.innerHTML = `
+                <div class="chat-message ai">
+                    <div class="chat-bubble">
+                        <strong><img src="/static/logo.png" class="ai-avatar" alt="IA" onerror="this.style.display='none'">Asistente IAdinse</strong><br>
+                        Conversación limpiada. ¿En qué puedo ayudarte?
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // ============= ARCHIVOS =============
+    async function loadFiles() {
+        try {
+            const response = await fetch('/api/files');
+            const data = await response.json();
+            
+            const filesDiv = document.getElementById('filesList');
+            filesDiv.innerHTML = '';
+            
+            const allFiles = [
+                ...data.csv_files.map(f => ({name: f, type: 'csv', icon: 'file-earmark-text'})),
+                ...data.excel_files.map(f => ({name: f, type: 'excel', icon: 'file-earmark-excel'})),
+                ...data.json_files.map(f => ({name: f, type: 'json', icon: 'file-earmark-code'}))
+            ];
+            
+            if (allFiles.length === 0) {
+                filesDiv.innerHTML = '<p class="text-center text-secondary">No hay archivos en /data/</p>';
+                return;
+            }
+            
+            allFiles.forEach(file => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                fileDiv.innerHTML = `
+                    <i class="bi bi-${file.icon} me-2"></i>
+                    <strong>${file.name}</strong>
+                `;
+                fileDiv.onclick = () => analyzeFile(file.name);
+                filesDiv.appendChild(fileDiv);
+            });
+            
+            updateFileSelects(allFiles.map(f => f.name));
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function updateFileSelects(files) {
+        const chartFile = document.getElementById('chartFile');
+        const ragFile = document.getElementById('ragFile');
+        
+        chartFile.innerHTML = files.map(f => `<option>${f}</option>`).join('');
+        ragFile.innerHTML = files.map(f => `<option>${f}</option>`).join('');
+        
+        if (files.length > 0) loadColumns(files[0]);
+    }
+
+    async function analyzeFile(filename) {
+        const resultDiv = document.getElementById('analysisResult');
+        resultDiv.innerHTML = '<p class="text-center"><span class="spinner"></span> Analizando...</p>';
+        
+        try {
+            const response = await fetch(`/api/analyze/${filename}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                resultDiv.innerHTML = `<p class="text-danger">❌ ${data.error}</p>`;
+                return;
+            }
+            
+            let statsHTML = '';
+            if (data.statistics) {
+                statsHTML = '<h6 class="mt-3">Estadísticas:</h6><ul>';
+                for (const [col, stats] of Object.entries(data.statistics)) {
+                    statsHTML += `<li><strong>${col}:</strong> Media=${(stats.mean || 0).toFixed(2)}, Min=${(stats.min || 0).toFixed(2)}, Max=${(stats.max || 0).toFixed(2)}</li>`;
+                }
+                statsHTML += '</ul>';
+            }
+            
+            resultDiv.innerHTML = `
+                <h6 class="fw-bold">${data.filename}</h6>
+                <p><strong>Filas:</strong> ${(data.rows || 0).toLocaleString()}</p>
+                <p><strong>Columnas:</strong> ${data.columns || 0}</p>
+                <p><strong>Memoria:</strong> ${(data.memory_usage_mb || 0).toFixed(2)} MB</p>
+                <hr>
+                <h6>Columnas:</h6>
+                <ul>${(data.column_names || []).map(c => `<li>${c}</li>`).join('')}</ul>
+                ${statsHTML}
+                <hr>
+                <h6>Vista Previa:</h6>
+                <div style="overflow-x: auto; max-height: 300px;">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>${(data.column_names || []).map(c => `<th>${c}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${(data.preview || []).map(row => `
+                                <tr>${(data.column_names || []).map(c => `<td>${row[c] !== null && row[c] !== undefined ? row[c] : 'N/A'}</td>`).join('')}</tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = `<p class="text-danger">❌ Error: ${error.message}</p>`;
+        }
+    }
+
+    async function loadColumns(filename) {
+        try {
+            const response = await fetch(`/api/analyze/${filename}`);
+            const data = await response.json();
+            
+            if (data.error) return;
+            
+            const xSelect = document.getElementById('chartX');
+            const ySelect = document.getElementById('chartY');
+            
+            xSelect.innerHTML = (data.column_names || []).map(c => `<option>${c}</option>`).join('');
+            ySelect.innerHTML = '<option value="">Ninguna</option>' + 
+                              (data.column_names || []).map(c => `<option>${c}</option>`).join('');
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    document.getElementById('chartFile').addEventListener('change', (e) => {
+        loadColumns(e.target.value);
+    });
+
+    // ============= GRÁFICOS =============
+    async function createChart() {
+        const preview = document.getElementById('chartPreview');
+        preview.src = '';
+        
+        const chartData = {
+            filename: document.getElementById('chartFile').value,
+            chart_type: document.getElementById('chartType').value,
+            x_column: document.getElementById('chartX').value,
+            y_column: document.getElementById('chartY').value || null,
+            title: document.getElementById('chartTitle').value
+        };
+        
+        try {
+            const response = await fetch('/api/chart/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(chartData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                preview.src = data.html_url;
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // ============= RAG =============
+    async function loadRAG() {
+        const filename = document.getElementById('ragFile').value;
+        
+        try {
+            const response = await fetch('/api/rag/load', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    source: filename,
+                    source_type: 'file'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`✅ ${data.incidents_loaded} incidencias cargadas`);
+                loadRAGStats();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function searchRAG() {
+        const query = document.getElementById('ragQuery').value.trim();
+        const resultsDiv = document.getElementById('ragResults');
+        
+        if (!query) {
+            alert('Escribe una descripción');
+            return;
+        }
+        
+        resultsDiv.innerHTML = '<p class="text-center"><span class="spinner"></span> Buscando...</p>';
+        
+        try {
+            const response = await fetch('/api/rag/search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    description: query,
+                    top_k: 10
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.similar_incidents && data.similar_incidents.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-search me-2"></i>Incidencias Similares Encontradas:
+                    </h6>
+                    <div class="mb-2">
+                        <small class="text-secondary">
+                            Mostrando ${data.similar_incidents.length} resultado(s) ordenados por similitud
+                        </small>
+                    </div>
+                `;
+                
+                data.similar_incidents.forEach((inc, i) => {
+                    const metadata = inc.metadata || {};
+                    const incidentId = metadata.ID || metadata.id || inc.id || 'N/A';
+                    
+                    // Extraer campos comunes
+                    const proyecto = metadata.Proyecto || metadata.proyecto || metadata.project || 'No especificado';
+                    const fecha = metadata.Fecha || metadata.fecha || metadata.date || metadata['Fecha del incidente'] || 'N/A';
+                    const descripcion = metadata.Descripción || metadata.descripcion || metadata['Descripcion Problema'] || metadata.description || inc.text;
+                    const solucion = metadata.Solución || metadata.solucion || metadata.Solucion || metadata.solution || 'No registrada';
+                    const estado = metadata.Estado || metadata.estado || metadata.status || '';
+                    const prioridad = metadata.Prioridad || metadata.prioridad || metadata.priority || '';
+                    
+                    // Crear card con estilo mejorado
+                    const resultCard = document.createElement('div');
+                    resultCard.className = 'card mb-3';
+                    resultCard.style.cssText = 'background: var(--row-bg); border: 1px solid var(--border); border-left: 4px solid var(--accent);';
+                    
+                    // Determinar color de similitud
+                    const similarity = inc.similarity_score;
+                    let similarityColor = 'success';
+                    if (similarity < 0.5) similarityColor = 'warning';
+                    if (similarity < 0.4) similarityColor = 'danger';
+                    
+                    resultCard.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">
+                                    <i class="bi bi-file-text me-2"></i>
+                                    <strong>Incidencia ${incidentId}</strong>
+                                </h6>
+                                <span class="badge bg-${similarityColor}">
+                                    ${(similarity * 100).toFixed(1)}% similar
+                                </span>
+                            </div>
+                            
+                            <div class="incident-details" style="line-height: 1.8;">
+                                <div class="mb-1">
+                                    <i class="bi bi-building text-primary me-2"></i>
+                                    <strong>Proyecto:</strong> ${proyecto}
+                                </div>
+                                
+                                ${fecha !== 'N/A' ? `
+                                <div class="mb-1">
+                                    <i class="bi bi-calendar3 text-info me-2"></i>
+                                    <strong>Fecha del incidente:</strong> ${fecha}
+                                </div>
+                                ` : ''}
+                                
+                                ${estado ? `
+                                <div class="mb-1">
+                                    <i class="bi bi-info-circle text-secondary me-2"></i>
+                                    <strong>Estado:</strong> <span class="badge bg-secondary">${estado}</span>
+                                </div>
+                                ` : ''}
+                                
+                                ${prioridad ? `
+                                <div class="mb-1">
+                                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                    <strong>Prioridad:</strong> <span class="badge bg-warning text-dark">${prioridad}</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div class="mb-1">
+                                    <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+                                    <strong>Descripción Problema:</strong>
+                                    <div class="ms-4 mt-1 text-secondary" style="white-space: pre-wrap;">${descripcion}</div>
+                                </div>
+                                
+                                <div class="mb-0">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <strong>Solución:</strong>
+                                    <div class="ms-4 mt-1 text-secondary" style="white-space: pre-wrap;">${solucion}</div>
+                                </div>
+                            </div>
+                            
+                            ${Object.keys(metadata).length > 6 ? `
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleMetadata(this, ${i})">
+                                    <i class="bi bi-plus-circle me-1"></i>Ver más detalles
+                                </button>
+                                <div id="metadata-${i}" style="display: none;" class="mt-2 p-2 bg-dark rounded">
+                                    <small>
+                                        ${Object.entries(metadata).map(([k, v]) => {
+                                            if (!['ID', 'id', 'Proyecto', 'proyecto', 'Fecha', 'fecha', 
+                                                  'Descripción', 'descripcion', 'Solución', 'solucion', 
+                                                  'Estado', 'estado', 'Prioridad', 'prioridad'].includes(k)) {
+                                                return `<div><strong>${k}:</strong> ${v}</div>`;
+                                            }
+                                            return '';
+                                        }).filter(x => x).join('')}
+                                    </small>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    resultsDiv.appendChild(resultCard);
+                });
+                
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>No se encontraron incidencias similares</strong>
+                        <p class="mb-0 mt-2 small">
+                            Intenta:
+                            <ul class="mb-0 mt-1">
+                                <li>Usar palabras clave diferentes</li>
+                                <li>Describir el problema de otra manera</li>
+                                <li>Verificar que hay incidencias cargadas en el sistema</li>
+                            </ul>
+                        </p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>Error:</strong> ${error.message}
+                </div>
+            `;
+        }
+    }
+    
+    function toggleMetadata(button, index) {
+        const metadataDiv = document.getElementById(`metadata-${index}`);
+        const icon = button.querySelector('i');
+        
+        if (metadataDiv.style.display === 'none') {
+            metadataDiv.style.display = 'block';
+            icon.className = 'bi bi-dash-circle me-1';
+            button.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Ocultar detalles';
+        } else {
+            metadataDiv.style.display = 'none';
+            icon.className = 'bi bi-plus-circle me-1';
+            button.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Ver más detalles';
+        }
+    }
+
+    async function loadRAGStats() {
+        try {
+            const response = await fetch('/api/rag/stats');
+            const data = await response.json();
+            
+            const statsDiv = document.getElementById('ragStats');
+            
+            if (data.rag_ready) {
+                statsDiv.innerHTML = `
+                    <div class="text-center">
+                        <h2 class="text-success fw-bold">${data.total_incidents || 0}</h2>
+                        <p class="text-secondary mb-2">Incidencias en la base de datos</p>
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            ${data.files.faiss ? '<span class="badge bg-success">✓ FAISS</span>' : ''}
+                            ${data.files.pkl ? '<span class="badge bg-success">✓ PKL</span>' : ''}
+                            ${data.files.chroma ? '<span class="badge bg-success">✓ ChromaDB</span>' : ''}
+                        </div>
+                        <small class="text-success d-block mt-2">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            RAG listo para usar
+                        </small>
+                    </div>
+                `;
+                
+                // Si hay datos, habilitar búsqueda
+                document.getElementById('ragQuery').disabled = false;
+            } else {
+                statsDiv.innerHTML = `
+                    <div class="text-center">
+                        <h2 class="text-warning fw-bold">${data.total_incidents || 0}</h2>
+                        <p class="text-secondary mb-2">Incidencias en la base de datos</p>
+                        <small class="text-warning d-block mt-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Carga incidencias para usar el RAG
+                        </small>
+                    </div>
+                `;
+                
+                // Deshabilitar búsqueda si no hay datos
+                document.getElementById('ragQuery').disabled = true;
+                document.getElementById('ragQuery').placeholder = 'Primero carga incidencias abajo...';
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+            return { rag_ready: false, total_incidents: 0 };
+        }
+    }
+
+    // ============= N8N WORKFLOWS =============
+    async function loadWorkflows() {
+        try {
+            const response = await fetch('/api/n8n/workflows');
+            const data = await response.json();
+            
+            const listDiv = document.getElementById('workflowsList');
+            
+            if (!data.success) {
+                listDiv.innerHTML = '<p class="text-danger">❌ Error conectando con n8n</p>';
+                return;
+            }
+            
+            const workflows = data.workflows;
+            
+            if (workflows.length === 0) {
+                listDiv.innerHTML = '<p class="text-secondary">No hay workflows</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = '';
+            
+            workflows.forEach(wf => {
+                const wfDiv = document.createElement('div');
+                wfDiv.className = 'wf-item';
+                wfDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div style="max-width: 60%;">
+                            <span class="status-dot ${wf.active ? 'dot-active' : 'dot-inactive'}"></span>
+                            <strong>${wf.name}</strong>
+                        </div>
+                        <div>
+                            <button class="btn-action ${wf.active ? 'btn-active-on' : ''}" 
+                                    onclick="toggleWorkflow('${wf.id}', ${!wf.active})" 
+                                    title="${wf.active ? 'Desactivar' : 'Activar'}">
+                                <i class="bi bi-power"></i>
+                            </button>
+                            <button class="btn-action" 
+                                    onclick="executeWorkflow('${wf.id}')" 
+                                    title="Ejecutar">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listDiv.appendChild(wfDiv);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('workflowsList').innerHTML = 
+                '<p class="text-danger">❌ Error: ' + error.message + '</p>';
+        }
+    }
+
+    async function executeWorkflow(workflowId) {
+        try {
+            const response = await fetch(`/api/n8n/workflow/execute/${workflowId}`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('✅ Workflow ejecutado');
+                loadExecutions();
+            } else {
+                alert('❌ Error al ejecutar workflow');
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function toggleWorkflow(workflowId, newState) {
+        try {
+            const response = await fetch(`/api/n8n/workflow/toggle/${workflowId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({active: newState})
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                loadWorkflows();
+            } else {
+                alert('❌ Error al cambiar estado');
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function loadExecutions() {
+        try {
+            const response = await fetch('/api/n8n/executions');
+            const data = await response.json();
+            
+            const tbody = document.getElementById('executionsTableBody');
+            
+            if (!data.success || data.executions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No hay ejecuciones</td></tr>';
+                return;
+            }
+            
+            // Obtener workflows para mapear IDs a nombres
+            const wfResponse = await fetch('/api/n8n/workflows');
+            const wfData = await wfResponse.json();
+            const wfMap = {};
+            if (wfData.success) {
+                wfData.workflows.forEach(wf => {
+                    wfMap[wf.id] = wf.name;
+                });
+            }
+            
+            tbody.innerHTML = data.executions.slice(0, 30).map(ex => {
+                const date = new Date(ex.startedAt);
+                const dateStr = date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES');
+                const wfName = wfMap[ex.workflowId] || ex.workflowId.substring(0, 8);
+                const status = ex.finished ? 'success' : 'danger';
+                const statusText = ex.finished ? '✓ ÉXITO' : '✗ FALLO';
+                
+                return `
+                    <tr>
+                        <td>${wfName}</td>
+                        <td class="small">${dateStr}</td>
+                        <td><span class="badge bg-${status}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // ============= INIT =============
+    document.addEventListener('DOMContentLoaded', () => {
+        loadModels();
+        loadFiles();
+        loadRAGStats();
+        
+        // Cargar workflows solo cuando se accede a la pestaña
+        document.querySelector('a[href="#workflowsTab"]').addEventListener('shown.bs.tab', function() {
+            loadWorkflows();
+            loadExecutions();
+        });
+    });
+</script>
+
+<!-- Three.js para visualización 3D -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    // ============= GALAXY 3D VISUALIZATION =============
+    let scene, camera, renderer, controls;
+    let suns = [];
+    let currentView = 'galaxy'; // 'galaxy' or 'solar_system'
+    let selectedSun = null;
+    let galaxyData = null;
+    
+    function initGalaxy() {
+        const container = document.getElementById('galaxy3d');
+        
+        // Scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        
+        // Camera
+        camera = new THREE.PerspectiveCamera(
+            75,
+            container.clientWidth / container.clientHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(0, 50, 100);
+        
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+        
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        
+        const pointLight = new THREE.PointLight(0xffffff, 1, 500);
+        pointLight.position.set(0, 0, 0);
+        scene.add(pointLight);
+        
+        // Stars background
+        addStars();
+        
+        // Controls básicos con mouse
+        addMouseControls();
+        
+        // Animation loop
+        animate();
+        
+        // Responsive
+        window.addEventListener('resize', onWindowResize);
+    }
+    
+    function addStars() {
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.5
+        });
+        
+        const starsVertices = [];
+        for (let i = 0; i < 1000; i++) {
+            const x = (Math.random() - 0.5) * 500;
+            const y = (Math.random() - 0.5) * 500;
+            const z = (Math.random() - 0.5) * 500;
+            starsVertices.push(x, y, z);
+        }
+        
+        starsGeometry.setAttribute('position', 
+            new THREE.Float32BufferAttribute(starsVertices, 3)
+        );
+        
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+    }
+    
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    
+    function addMouseControls() {
+        const container = document.getElementById('galaxy3d');
+        
+        // Rotation con mouse
+        container.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+        
+        container.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                camera.position.x += deltaX * 0.5;
+                camera.position.y -= deltaY * 0.5;
+                camera.lookAt(0, 0, 0);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        container.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        // Zoom con rueda
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 5;
+            camera.position.z += e.deltaY * 0.05;
+            camera.position.z = Math.max(20, Math.min(200, camera.position.z));
+        });
+        
+        // Click en soles
+        container.addEventListener('click', onMouseClick);
+    }
+    
+    function onMouseClick(event) {
+        const container = document.getElementById('galaxy3d');
+        const rect = container.getBoundingClientRect();
+        
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+        
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        
+        if (intersects.length > 0) {
+            const clickedObject = intersects[0].object;
+            
+            if (clickedObject.userData.type === 'sun') {
+                showSolarSystem(clickedObject.userData.sunData);
+            } else if (clickedObject.userData.type === 'planet') {
+                showIncidentDetails(clickedObject.userData.incidentData);
+            }
+        }
+    }
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // Rotar soles lentamente
+        scene.children.forEach(child => {
+            if (child.userData.type === 'sun') {
+                child.rotation.y += 0.001;
+            }
+        });
+        
+        renderer.render(scene, camera);
+    }
+    
+    function onWindowResize() {
+        const container = document.getElementById('galaxy3d');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+    
+    async function loadGalaxy() {
+        try {
+            const loadingDiv = document.getElementById('galaxyLoading');
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerHTML = `
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Cargando universo...</p>
+                <small class="text-secondary">Esto puede tardar unos segundos la primera vez</small>
+            `;
+            
+            const startTime = Date.now();
+            
+            const response = await fetch('/api/rag/galaxy');
+            const data = await response.json();
+            
+            const loadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+            
+            if (!data.success) {
+                loadingDiv.innerHTML = '<p class="text-danger">❌ ' + (data.error || 'No hay datos') + '</p>';
+                return;
+            }
+            
+            galaxyData = data;
+            
+            // Actualizar stats
+            document.getElementById('galaxyProjectCount').textContent = data.total_projects + ' Proyectos';
+            document.getElementById('galaxyIncidentCount').textContent = data.total_incidents + ' Incidencias';
+            
+            // Limpiar scene
+            clearScene();
+            
+            // Crear soles
+            createGalaxyView(data.suns);
+            
+            loadingDiv.innerHTML = `<p class="text-success">✅ Cargado en ${loadTime}s</p>`;
+            setTimeout(() => {
+                loadingDiv.style.display = 'none';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error loading galaxy:', error);
+            document.getElementById('galaxyLoading').innerHTML = 
+                '<p class="text-danger">❌ Error: ' + error.message + '</p>';
+        }
+    }
+    
+    function clearScene() {
+        // Limpiar objetos excepto estrellas de fondo y luces
+        const objectsToRemove = [];
+        scene.children.forEach(child => {
+            if (child.userData.type === 'sun' || child.userData.type === 'planet') {
+                objectsToRemove.push(child);
+            }
+        });
+        objectsToRemove.forEach(obj => scene.remove(obj));
+    }
+    
+    function createGalaxyView(sunsData) {
+        currentView = 'galaxy';
+        suns = [];
+        
+        sunsData.forEach((sunData, index) => {
+            // Tamaño proporcional pero con límites
+            const baseSize = Math.log(sunData.size + 1) * 2;
+            const size = Math.max(3, Math.min(15, baseSize));
+            
+            // Color según tamaño (más grande = más brillante)
+            const color = new THREE.Color();
+            color.setHSL(0.15, 1, 0.5 + (sunData.size / 2000) * 0.3);
+            
+            // Geometría del sol
+            const geometry = new THREE.SphereGeometry(size, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.5
+            });
+            
+            const sun = new THREE.Mesh(geometry, material);
+            
+            // Posición
+            sun.position.set(sunData.x * 10, sunData.y * 10, sunData.z * 10);
+            
+            // Metadata
+            sun.userData = {
+                type: 'sun',
+                sunData: sunData
+            };
+            
+            // Glow effect
+            const glowGeometry = new THREE.SphereGeometry(size * 1.2, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            sun.add(glow);
+            
+            scene.add(sun);
+            suns.push(sun);
+        });
+    }
+    
+    function showSolarSystem(sunData) {
+        selectedSun = sunData;
+        currentView = 'solar_system';
+        
+        // Mostrar info
+        document.getElementById('galaxyInfo').style.display = 'block';
+        document.getElementById('selectedProjectName').textContent = sunData.name;
+        document.getElementById('selectedProjectInfo').textContent = 
+            `${sunData.incident_count} incidencias`;
+        
+        // Limpiar y crear sistema solar
+        clearScene();
+        
+        // Sol central
+        const sunGeometry = new THREE.SphereGeometry(8, 32, 32);
+        const sunMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffaa00,
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.8
+        });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        sun.position.set(0, 0, 0);
+        scene.add(sun);
+        
+        // Planetas (incidencias)
+        const incidents = sunData.incidents;
+        const orbitLayers = Math.ceil(incidents.length / 20); // Max 20 por órbita
+        
+        incidents.forEach((incident, index) => {
+            const layer = Math.floor(index / 20);
+            const angleStep = (Math.PI * 2) / Math.min(20, incidents.length - layer * 20);
+            const angle = (index % 20) * angleStep;
+            const orbitRadius = 20 + layer * 15;
+            
+            // Tamaño del planeta (random pequeño)
+            const planetSize = 0.5 + Math.random() * 1.5;
+            
+            // Color según metadata si existe
+            const color = new THREE.Color(
+                Math.random() * 0.5 + 0.5,
+                Math.random() * 0.5 + 0.5,
+                Math.random() * 0.5 + 0.5
+            );
+            
+            const planetGeometry = new THREE.SphereGeometry(planetSize, 16, 16);
+            const planetMaterial = new THREE.MeshPhongMaterial({ color });
+            const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+            
+            planet.position.set(
+                Math.cos(angle) * orbitRadius,
+                (Math.random() - 0.5) * 10,
+                Math.sin(angle) * orbitRadius
+            );
+            
+            planet.userData = {
+                type: 'planet',
+                incidentData: incident
+            };
+            
+            scene.add(planet);
+        });
+        
+        // Ajustar cámara
+        camera.position.set(0, 50, 80);
+        camera.lookAt(0, 0, 0);
+    }
+    
+    function showIncidentDetails(incident) {
+        const info = `
+            <strong>ID:</strong> ${incident.id}<br>
+            <strong>Texto:</strong> ${incident.text}<br>
+            ${Object.entries(incident.metadata).map(([k, v]) => 
+                `<strong>${k}:</strong> ${v}`
+            ).join('<br>')}
+        `;
+        
+        document.getElementById('selectedProjectInfo').innerHTML = info;
+    }
+    
+    function resetCamera() {
+        if (currentView === 'galaxy') {
+            camera.position.set(0, 50, 100);
+            document.getElementById('galaxyInfo').style.display = 'none';
+        } else {
+            // Volver a vista galaxy
+            loadGalaxy();
+            document.getElementById('galaxyInfo').style.display = 'none';
+        }
+        camera.lookAt(0, 0, 0);
+    }
+    
+    // Inicializar cuando se accede a la pestaña RAG (LAZY LOADING)
+    let galaxyInitialized = false;
+    
+    document.querySelector('a[href="#ragTab"]').addEventListener('shown.bs.tab', async function() {
+        if (!galaxyInitialized) {
+            console.log('Inicializando Galaxy 3D...');
+            initGalaxy();
+            
+            // Verificar si ya hay datos en RAG
+            const stats = await loadRAGStats();
+            
+            if (stats.rag_ready && stats.total_incidents > 0) {
+                console.log(`✅ RAG detectado con ${stats.total_incidents} incidencias`);
+                console.log('📦 Archivos encontrados:', stats.files);
+                console.log('🌌 Cargando Galaxy automáticamente...');
+                
+                // Cargar Galaxy automáticamente
+                setTimeout(() => {
+                    loadGalaxy();
+                }, 500);
+            } else {
+                console.log('⚠️ No hay datos en RAG');
+                document.getElementById('galaxyLoading').innerHTML = 
+                    `<div class="text-center text-warning p-4">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-2"><strong>No hay incidencias cargadas</strong></p>
+                        <p class="small text-secondary">
+                            Si ya tienes archivos .faiss y .pkl en la carpeta rag_db/,<br>
+                            reinicia el servidor para que ChromaDB los detecte.<br><br>
+                            Si no, carga tu archivo JSON abajo.
+                        </p>
+                    </div>`;
+            }
+            
+            galaxyInitialized = true;
+        }
+    });
+    
+    // ============= RAG Functions (mantener las existentes) =============
+    async function loadRAG() {
+        const filename = document.getElementById('ragFile').value;
+        const btn = document.getElementById('loadRAGBtn');
+        
+        if (!filename || filename === 'Cargando...') {
+            alert('Selecciona un archivo');
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Cargando... (puede tardar varios minutos)';
+        
+        try {
+            const response = await fetch('/api/rag/load', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    source: filename,
+                    source_type: 'file'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`✅ ${data.incidents_loaded} incidencias cargadas correctamente`);
+                loadRAGStats();
+                loadGalaxy(); // Recargar galaxy
+            } else {
+                alert('❌ Error: ' + (data.error || 'Desconocido'));
+                if (data.traceback) console.error(data.traceback);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-upload me-2"></i>Cargar al RAG';
+        }
+    }
+</script>
+</body>
+</html>
